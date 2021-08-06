@@ -68,8 +68,59 @@ exports.sendRewardNotification = functions.firestore.document('rented/{rentedId}
     // notification payload
     let payload = {
         notification: {
-            title: "Your on" + title + "Bid Won!!",
+            title: "Your bid on" + title + "Bid Won!!",
             body: "Your Bid Has Been Accepted"
+        }
+    };
+
+    db.collection('tokens').where('user', '==', posted_by).limit(1).get().then((snapshot) => {
+        snapshot.forEach((doc) => {
+            
+            deviceToken = doc.data().token;
+
+        });
+        console.log("Sent to device", deviceToken)
+        admin.messaging().sendToDevice(deviceToken, payload).then(function (response){
+            console.log('Notification Was Successfully Sent');
+        }).catch(function (error){
+            console.log('There was an error sending the notification', error);
+        })
+       
+    });
+
+    db.collection('tokens').where('user', '==', renter).limit(1).get().then((snapshot) => {
+        snapshot.forEach((doc) => {
+            
+            deviceToken = doc.data().token;
+
+        });
+        console.log("Sent to device", deviceToken)
+        admin.messaging().sendToDevice(deviceToken, payload).then(function (response){
+            console.log('Notification Was Successfully Sent');
+        }).catch(function (error){
+            console.log('There was an error sending the notification', error);
+        })
+       
+    });
+
+
+});
+
+
+
+// listen on rented items and notify the person who has been rewarded an item
+exports.sendPostNotification = functions.firestore.document('uploads/{uploadId}').onCreate((snap, context)=>{
+      
+    
+    let deviceToken = null;
+    let posted_by = snap.get('posted_by');
+    let title = snap.get('title');
+
+    // notification payload
+    let payload = {
+        notification: {
+            title: "New Listing" + title +" !!",
+            body: "Your "+ title +" Is Now Public On The Store"
         }
     };
 
